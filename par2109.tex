@@ -472,14 +472,14 @@ as to minimize the load imbalance of the tasks.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/set.png}
-    \caption{Mandelbrot set with 10000 maxiter}
+    \caption{Mandelbrot set with maxiter=10000}
     \label{fig:set} 
 \end{figure}
 
 \section{Conclusions}%
 \label{sec:Conclusions}
 
-As we have seen, the Mandelbrot computation is embarrassingly parallel since every point can be computed indepently
+As we have seen, the Mandelbrot computation is embarrassingly parallel since every point can be computed independently
 from the others. However, there is a load imbalance in the tasks due to the nature of the computation which makes
 higher granularity approaches unpractical.
 
@@ -487,13 +487,6 @@ Although we can achieve pretty good speedup values with a taskloop with granular
 decomposition approach gives better results. The best results we obtained were using \texttt{for}-based decomposition
 with dynamic scheduling and a chunk-size of 25. This chunk size is the one that gave the best results in our
 experiments, but it may no be ideal for other regions of the image, we think however that this size minimizes
-the load inbalance of the tasks in most cases.
-
-% NO se k estoy metiendo pero parece k hayamos hecho cosas como minimo. lol
-
-
-
-% TODO: I aqui pues relleno bonito del final
-
+the load imbalance of the tasks in most cases.
 
 \end{document}
