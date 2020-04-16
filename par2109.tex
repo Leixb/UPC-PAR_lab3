@@ -12,13 +12,17 @@
 
 \usepackage{xcolor}
 
+\definecolor{LightGray}{rgb}{0.83, 0.83, 0.83}
+\definecolor{bg}{HTML}{282828}
+
 \usepackage{minted}
 \setminted{
-frame=lines,
+style=monokai,
+%frame=lines,
 framesep=2mm,
 baselinestretch=1.2,
 breaklines,
-%bgcolor=LightGray,
+bgcolor=bg,
 fontsize=\footnotesize,
 linenos
 }
@@ -71,30 +75,6 @@ linenos
 \end{titlepage}
 
 
-%vale como nos organizamos?
-%Que habria que hacer? Intro, 4.1 4.2 y 4.3 no? y conclusiones
-%Bueno las sections estas de abajo,  no?
-%
-%en la intro no se, poner qualquier chorrada. 
-%SI, explicamos un poco mandelbrot set y tal
-% Vale perf pues nose, si quieres 
-% voy a mirarme los codigos i la mierda esa a ver si me acuerdo k se tenia k hacer 
-%Sorry jeje Bueno igualmente
-% tampoco tenia nada hewcho casi diria.
-% okay pues si eso puedo empezar con intro. Aunque me gustaria saber que haces en los codigos
-% porque yo no sé hacerlo
-% a ver, en la intro se mete tambien el granularity analysis supongo
-% que es lo del tareador start task i end task.
-
-% lo k hago en los codigo lo metemos en un listing. Que pone en el deliverable que se tienen que incluyr
-% fragmentos de los codigos. No?
-% Yes perff
-% Vale, sudo de la parte del tarreador. Que es solo poner lo del tareador astart task i end task en los
-% dos casos y hacer las graficas (prara row y point) true.
-% es rapido, si quieres hazlo tu
-% esto va un poco bugeado si escribimmos en la misma linea lol
-% jaaja vale lo hago yo (aunque not sure de donde he de ponerlos) dentro del for mas interno para point y fuera para row? okkk
-% sep
 \section{Introduction}%
 \label{sec:Introduction}
 
@@ -114,9 +94,46 @@ We analyzed the potential parallelism for two possible task granularities that c
 
 We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing purposes and to check for the numerical validity of the output.} and \texttt{mandeld-tar}\footnote{\texttt{mandeld}: generates a binary that visualizes the Mandelbrot set.}, programs with the different granularities using the \texttt{./run-tareador.sh} script and we obtained the following dependency graphs.
 
-% import dependency graphs
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{plots/dependency_graph_mandel_point.pdf}
+\caption{Task dependence graph of \texttt{mandel-tar.c} with point decomposition.}
+\label{graph:mandel_point}
+\end{figure}
 
-As we can see in figures~\ref{fig:graph_mandel_point} and~\ref{fig:graph_mandel_row} the \texttt{mandel} version generates %me voy a comer dew
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{plots/dependency_graph_mandel_row.pdf}
+\caption{Task dependence graph of \texttt{mandel-tar.c} with row decomposition.}
+\label{graph:mandel_row}
+\end{figure}
+
+%damn los tamaños jajajaja
+% estos graphs son una mierda porque son verticales...
+% RIP
+% como se puede poner uno al lado del otro?
+% te importa que sean la misma figure?
+% no me importa ya me apaño luego al comentar
+% pues metes los dos include graphics en la misma figure
+% pero asegurandote de k la width no es muy grande en plan los dos a menos de 0.5 pork sino no caben
+\begin{figure}[H]
+\centering
+\includegraphics[height=5cm]{plots/dependency_graph_mandeld_point.pdf}
+%no puede hacerlo pork el pdf es demasiado grande lol
+%los convierto a png
+%gimme a sec
+% ok
+% i sin caption
+% \caption{Task dependence graph of \texttt{mandeld-tar.c} with point decomposition.}
+% \label{graph:mandeld_point}
+% LOL usa height
+% rip
+\includegraphics[width=0.3\textwidth]{plots/dependency_graph_mandeld_row.pdf}
+\caption{Task dependence graph of \texttt{mandeld-tar.c} with row decomposition.}
+\label{graph:mandeld_row}
+\end{figure}
+
+As we can see in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} there is a big granularity difference between both decompositions in the \texttt{mandel} version.
 
 % Which are the two most important common characteristics of the task graphs generated for the two task granularities (Point and Row) for the non-graphical version of mandel-tar?  Why the task graphs generated for mandel-tar and mandeld-tar are so different?  Which section of the code do you think is causing the serialization of all tasks in the graphical version?  How will you protect this section of code in the parallel OpenMP code in the next sections?
 
@@ -158,6 +175,15 @@ As we can see in figures~\ref{fig:graph_mandel_point} and~\ref{fig:graph_mandel_
     \centering
     \includegraphics{plots/grainsize_log.pdf}
     \caption{Plot of execution time for different grainsizes (log scale)}
+    \label{fig:grain_log} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Mandel tar code}
+    \inputminted[firstline=91,lastline=127]{c}{sources/mandel-tar.c}
+    \vspace{-2em}
+    \inputminted[firstline=200,lastline=210]{c}{sources/mandel-tar.c}
     \label{fig:grain_log} 
 \end{figure}
 
