@@ -123,7 +123,7 @@ We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} th
 \label{graph:mandeld_point_and_row}
 \end{figure}
 
-This serialization in the graphical version is caused in the lines 120-130 of the code due to a data race problem that implies full dependence between all tasks. This section can be protected with the \texttt{\#pragma omp critical} clause as shown in the listing~\ref{listing:mandel-omp-critical}. % is this ok?
+This serialization in the graphical version is caused in the lines 120-130 of the code due to a data race problem that implies full dependence between all tasks. This section can be protected with the \texttt{\#pragma omp critical} clause as shown in the listing~\ref{listing:mandel-omp-critical}.
 
 \begin{listing}[H]
 \inputminted[firstline=120,lastline=130]{c}{sources/mandel-omp-v1.c}
@@ -131,9 +131,8 @@ This serialization in the graphical version is caused in the lines 120-130 of th
 \label{listing:mandel-omp-critical}
 \end{listing}
 
-% TODO: Reason which one of the two task granularities would be more appropriate to apply to implement a parallel version of the Mandelbrot code.
-\textbf{ATENCION FALTA HACER!}
-Esto ni idea... yo diria que el POINT seria lo mejor pero no hay infinitos threads por lo tanto teniendo los threads que tenemos quizas es mejor ROW no?
+% Reason which one of the two task granularities would be more appropriate to apply to implement a parallel version of the Mandelbrot code.
+The program is embarrassingly parallelizable so to implement a parallel version of the Mandelbrot code the point granularity should be more appropriate. But with a low number of threads the overhead of task creation would increase and in that case the row granularity could have a better final execution time.
 
 \section{Parallelization Strategies}%
 \label{sec:Parallelization Strategies}
@@ -151,6 +150,83 @@ Esto ni idea... yo diria que el POINT seria lo mejor pero no hay infinitos threa
 \label{sec:Performance evaluation}
 
 %TODO: Aqui comparas
+
+
+
+\subsection{\emph{Point} startegy using \emph{OpenMP} \texttt{task}}%
+
+There are multiple ways to create a task for the computation of each point in the Mandelbrot set. We tried
+several options and analyzed the performance of each one.
+
+The first version is shown in listing~\ref{lst:v1}. We create a task for each iteration of the \texttt{col} for. The
+pool of threads is initialized at every row.
+
+\begin{figure}[H]
+    \centering
+    \caption{v1 of point task decomposition}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v1.c}
+    \label{lst:v1} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{v2: point task decomposition with taskwait}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v2.c}
+    \vspace{-2em}
+    \inputminted[firstline=132,lastline=134]{c}{sources/mandel-omp-v2.c}
+    \label{lst:v2} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{v3: point task decomposition with taskgroup}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v3.c}
+    \vspace{-2em}
+    \inputminted[firstline=133,lastline=135]{c}{sources/mandel-omp-v3.c}
+    \label{lst:v3} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{v4: point task decomposition task without wait}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v4.c}
+    \vspace{-2em}
+    \inputminted[firstline=131,lastline=133]{c}{sources/mandel-omp-v4.c}
+    \label{lst:v4} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{v5: point task decomposition with taskloop}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v5.c}
+    \label{lst:v5} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{v6: point task decomposition with taskloop grainsize(1)}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v6.c}
+    \label{lst:v6} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{v7: point task decomposition with taskloop grainsize(1) nogroup}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v7.c}
+    \label{lst:v7} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{v8: row task decomposition}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v8.c}
+    \label{lst:v7} 
+\end{figure}
+
+%
+%lo estoy metiendo aqui de momento.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
