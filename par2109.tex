@@ -71,4 +71,78 @@ linenos
 \end{titlepage}
 
 
+%vale como nos organizamos?
+%Que habria que hacer? Intro, 4.1 4.2 y 4.3 no? y conclusiones
+%Bueno las sections estas de abajo,  no?
+%
+%en la intro no se, poner qualquier chorrada. 
+%SI, explicamos un poco mandelbrot set y tal
+% Vale perf pues nose, si quieres 
+% voy a mirarme los codigos i la mierda esa a ver si me acuerdo k se tenia k hacer 
+%Sorry jeje Bueno igualmente
+% tampoco tenia nada hewcho casi diria.
+% okay pues si eso puedo empezar con intro. Aunque me gustaria saber que haces en los codigos
+% porque yo no sé hacerlo
+% a ver, en la intro se mete tambien el granularity analysis supongo
+% que es lo del tareador start task i end task.
+
+% lo k hago en los codigo lo metemos en un listing. Que pone en el deliverable que se tienen que incluyr
+% fragmentos de los codigos. No?
+% Yes perff
+% Vale, sudo de la parte del tarreador. Que es solo poner lo del tareador astart task i end task en los
+% dos casos y hacer las graficas (prara row y point) true.
+% es rapido, si quieres hazlo tu
+% esto va un poco bugeado si escribimmos en la misma linea lol
+% jaaja vale lo hago yo (aunque not sure de donde he de ponerlos) dentro del for mas interno para point y fuera para row? okkk
+% sep
+\section{Introduction}%
+\label{sec:Introduction}
+
+% copy paste form here to ... 
+% (solo he cambbiado el tiempo verbal, no se si hace falta cambiarlo más ya que enrealidad lo que queremos decir al principio es lo mismo que dice el enunciado...) (y bueno he borrado un par de parrafos)
+In this laboratory assignment we explored the tasking model in OpenMP to express iterative task decompositions. 
+We started by exploring the most appropriate ones by using \emph{Tareador}. The program that we used is the computation of the \emph{Mandelbrot set}, a particular set of points, in the complex domain, whose boundary generates a distinctive and easily recognisable two-dimensional fractal shape.
+
+For each point $c$ in a delimited two-dimensional space, the complex quadratic polynomial recurrence $z_{n+1} = z^2_n + c$ is iteratively applied in order to determine if it belongs or not to the Mandelbrot set.  The point is part of the Mandelbrot set if, when starting with $z_0 = 0$ and applying the iteration repeatedly, the absolute value of $z_n$ never exceeds a certain number however large $n$ gets.
+
+We analyzed the potential parallelism for two possible task granularities that can be exploited in this program. Those two are:
+\begin{enumerate}[label=\alph*)]
+\item \emph{Point}: a task corresponds with the computation of a single point (\texttt{row},\texttt{col}) of the Mandelbrot set.
+\item \emph{Row}: a task corresponds with the computation of a whole \texttt{row} of the Mandelbrot set.
+\end{enumerate}
+% ... here
+
+We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing purposes and to check for the numerical validity of the output.} and \texttt{mandeld-tar}\footnote{\texttt{mandeld}: generates a binary that visualizes the Mandelbrot set.}, programs with the different granularities using the \texttt{./run-tareador.sh} script and we obtained the following dependency graphs.
+
+% import dependency graphs
+
+As we can see in figures~\ref{fig:graph_mandel_point} and~\ref{fig:graph_mandel_row} the \texttt{mandel} version generates %me voy a comer dew
+
+% Which are the two most important common characteristics of the task graphs generated for the two task granularities (Point and Row) for the non-graphical version of mandel-tar?  Why the task graphs generated for mandel-tar and mandeld-tar are so different?  Which section of the code do you think is causing the serialization of all tasks in the graphical version?  How will you protect this section of code in the parallel OpenMP code in the next sections?
+
+% Reason which one of the two task granularities would be more appropriate to apply to implement a parallel version of the Mandelbrot code.
+
+\section{Parallelization Strategies}%
+\label{sec:Parallelization Strategies}
+
+%aqui explicas las strategias del 4.2, 4.3 y 4.4
+
+%$ OMP_NUM_THREADS=1 ./mandeld-omp -i 10000
+%Total execution time: 3.228077s
+%$ ./mandeld -i 10000
+%Total execution time: 3.061886s
+%$ OMP_NUM_THREADS=8 ./mandeld-omp -i 10000
+%Total execution time: 1.210712s
+
+\section{Performance evaluation}%
+\label{sec:Performance evaluation}
+
+%Aqui comparas
+
+\section{Conclusions}%
+\label{sec:Conclusions}
+
+%I aqui pues relleno bonito del final
+
+
 \end{document}
