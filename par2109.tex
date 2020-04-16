@@ -76,6 +76,9 @@ linenos
 }
 \end{titlepage}
 
+\tableofcontents
+\pagebreak
+
 
 \section{Introduction}%
 \label{sec:Introduction}
@@ -125,16 +128,28 @@ We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} th
 \label{graph:mandeld_point_and_row}
 \end{figure}
 
-This serialization in the graphical version is caused in the lines 120-130 of the code due to a data race problem that implies full dependence between all tasks. This section can be protected with the \texttt{\#pragma omp critical} clause as shown in the listing~\ref{listing:mandel-omp-critical}.
+This serialization in the graphical version is caused in the lines 120-130 of the code due to a data race when accessing the display, this implies full dependence between all tasks. Therefore when parallelizing the program with OpenMP, this section has to be protected with the \texttt{\#pragma omp critical} clause as shown in the listing~\ref{listing:mandel-omp-critical}.
 
 \begin{listing}[H]
 \inputminted[firstline=120,lastline=130]{c}{sources/mandel-omp-v1.c}
-\caption{Problematic section in \texttt{mandel-tar.c} protected with \texttt{\#pragma omp critical}.}
+\caption{Problematic section in \texttt{mandel-omp.c} protected with \texttt{\#pragma omp critical}.}
 \label{listing:mandel-omp-critical}
 \end{listing}
 
 % Reason which one of the two task granularities would be more appropriate to apply to implement a parallel version of the Mandelbrot code.
+
 The program is embarrassingly parallelizable so to implement a parallel version of the Mandelbrot code the point granularity should be more appropriate. But with a low number of threads the overhead of task creation would increase and in that case the row granularity could have a better final execution time.
+
+We can also see that there is a big variation in the number of instructions per task, specially in the point decomposition.
+This is due to the recursive nature of the mandelbrot set computation, where we can't know how many iterations it'll
+take to compute each point. The problematic loop is shown in listing~\ref{listing:mandel-omp-dowhile} where we can see
+that for each point it could take from 1 to \texttt{maxiter} iterations of the loop to compute.
+
+\begin{listing}[H]
+\inputminted[firstline=109,lastline=118]{c}{sources/mandel-omp-v1.c}
+\caption{Problematic section in \texttt{mandel-omp.c}}
+\label{listing:mandel-omp-dowhile}
+\end{listing}
 
 \section{Parallelization Strategies}%
 \label{sec:Parallelization Strategies}
@@ -238,6 +253,15 @@ the \texttt{row} loop as shown in listing~\ref{lst:v8}.
 
 \subsection{\texttt{for}-based parallelization}%
 
+We used \texttt{\#pragma omp parallel for collapse(2)} to collapse the two levels of the for loops.
+
+\begin{listing}[H]
+    \centering
+    \caption{for-based task decomposition}
+    \inputminted[firstline=91,lastline=96]{c}{sources/mandel-omp-v11.c}
+    \label{lst:v11} 
+\end{listing}
+
 %$ OMP_NUM_THREADS=1 ./mandeld-omp -i 10000
 %Total execution time: 3.228077s
 %$ ./mandeld -i 10000
@@ -250,11 +274,6 @@ the \texttt{row} loop as shown in listing~\ref{lst:v8}.
 
 %TODO: Aqui comparas
 
-
-%
-%lo estoy metiendo aqui de momento.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
@@ -276,13 +295,13 @@ the \texttt{row} loop as shown in listing~\ref{lst:v8}.
         \centering
         \includegraphics[width=0.7\linewidth]{captures/v1-profile.png}
         \caption{Paraver \texttt{tasks\_profile} v1}
-        \label{fig:ssa_v1} 
+        \label{fig:profile_v1} 
     \end{minipage}
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=\linewidth]{captures/v1-plot.png}
         \caption{Paraver tasks v1}
-        \label{fig:ssa_v2} 
+        \label{fig:tasks_v1} 
     \end{minipage}
 \end{figure}
 
@@ -332,6 +351,7 @@ the \texttt{row} loop as shown in listing~\ref{lst:v8}.
     \end{minipage}
 \end{figure}
 
+\subsection{Taskloop grainsize analysis}
 
 \begin{table}[H]
     \caption{Execution times with different grainsizes}%
@@ -355,13 +375,49 @@ the \texttt{row} loop as shown in listing~\ref{lst:v8}.
     \label{fig:grain_log} 
 \end{figure}
 
+\subsection{for scheduling analysis}
+
+We ran the for task decomposition of the program with different scheduling schemes and chunk-sizes. The
+results obtained can be seen in table~\ref{tab:for}.
+
+\begin{table}[H]
+    \caption{Execution times with different scheduling and chunk-sizes}%
+    \label{tab:for}
+    \begin{center}
+    \input{tables/for}
+    \end{center}
+\end{table}
+
+Figures~\ref{fig:for} and \ref{fig:for_log} show the data of table~\ref{tab:for} on a linear scale and logarithmic
+scale respectively. We can see that chunk-size does not affect execution time with dynamic or guided scheduling
+and that it severely affects the execution time with static scheduling. Guided scheduling provides no benefits, which
+makes sense given that all tasks have the same cost. The best results are obtained with static scheduling and
+a chunk size of 800, although similar execution times are obtained with static 1, 2 and dynamic scheduling.
+
+
 \begin{figure}[H]
     \centering
-    \caption{Mandel tar code}
-    \inputminted[firstline=91,lastline=127]{c}{sources/mandel-tar.c}
-    \vspace{-2em}
-    \inputminted[firstline=200,lastline=210]{c}{sources/mandel-tar.c}
-    \label{fig:grain_log} 
+    \includegraphics{plots/for-scheduling.pdf}
+    \caption{Plot of execution time for different chunk-sizes and scheduling}
+    \label{fig:for} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{plots/for-scheduling_log.pdf}
+    \caption{Plot of execution time for different chunk-sizes and scheduling (log scale)}
+    \label{fig:for_log} 
+\end{figure}
+
+The fact that static scheduling has much longer execution times for certain-chunk sizes is due to the load imbalance
+we discussed in the introduction. One thing to notice is that the computation of a point takes longer in the \emph{edges}
+of the set
+
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/set.png}
+    \caption{Mandelbrot set with 10000 maxiter}
+    \label{fig:set} 
 \end{figure}
 
 \section{Conclusions}%
