@@ -92,53 +92,38 @@ We analyzed the potential parallelism for two possible task granularities that c
 \end{enumerate}
 % ... here
 
-We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing purposes and to check for the numerical validity of the output.} and \texttt{mandeld-tar}\footnote{\texttt{mandeld}: generates a binary that visualizes the Mandelbrot set.}, programs with the different granularities using the \texttt{./run-tareador.sh} script and we obtained the following dependency graphs.
+We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing purposes and to check for the numerical validity of the output.} and \texttt{mandeld-tar}\footnote{\texttt{mandeld}: generates a binary that visualizes the Mandelbrot set.}, programs with the different granularities using the \texttt{./run-tareador.sh} script and we obtained the following results.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=8cm, height=2cm]{plots/dependency_graph_mandel_point.png}
-%con esto los deformas yaya queria ver como quedaba
+\includegraphics[width=\textwidth]{plots/dependency_graph_mandel_point.png}
 \caption{Task dependence graph of \texttt{mandel-tar.c} with point decomposition.}
 \label{graph:mandel_point}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-% pero con esto los deformas
-\includegraphics[width=8cm, height=2cm]{plots/dependency_graph_mandel_row.pdf}
+\includegraphics[width=0.6\textwidth]{plots/dependency_graph_mandel_row.pdf}
 \caption{Task dependence graph of \texttt{mandel-tar.c} with row decomposition.}
 \label{graph:mandel_row}
 \end{figure}
 
-% queda tope feo
-% se ven super borrosos los de mandel
-% ya pork los he escalado a 100px de ancho
-% para los verticales funciona, pero para los horizontales como que no
-% pero esos tambien te daban problems? solo el primero
-% que numero de piceles pongo?
-% 500 de alto en los horizontales? idk sincerely
+As we expected the point decomposition has a much more big granularity than the row one. But we obtained that the two decompositions generate similar task graphs for each executable.
+
+We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} that with the \texttt{mandel} executable all tasks can parallelize at the same level.
+
+%in the \texttt{mandel} version.
+
+
 \begin{figure}[H]
 \centering
-%pero te falla el raro, o? el otro con pdf ya sirve? ya sirve
-% falla el de point en los dos casos
-% vale vale, entones solo metos los del point con png 
-% perf
-\includegraphics[width=2cm, height=8cm]{plots/dependency_graph_mandeld_point.png}
-%no puede hacerlo pork el pdf es demasiado grande lol
-%los convierto a png
-%gimme a sec
-% ok
-% i sin caption
-% \caption{Task dependence graph of \texttt{mandeld-tar.c} with point decomposition.}
-% \label{graph:mandeld_point}
-% LOL usa height
-% rip
-\includegraphics[width=2cm, height=8cm]{plots/dependency_graph_mandeld_row.pdf}
-\caption{Task dependence graph of \texttt{mandeld-tar.c} with row decomposition.}
-\label{graph:mandeld_row}
+\includegraphics[height=8cm]{plots/dependency_graph_mandeld_point.png}
+\hspace{5em}
+\includegraphics[height=8cm]{plots/dependency_graph_mandeld_row.pdf}
+\caption{Task dependence graph of \texttt{mandeld-tar.c} with point and row decompositions.}
+\label{graph:mandeld_point_and_row}
 \end{figure}
 
-As we can see in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} there is a big granularity difference between both decompositions in the \texttt{mandel} version.
 
 % Which are the two most important common characteristics of the task graphs generated for the two task granularities (Point and Row) for the non-graphical version of mandel-tar?  Why the task graphs generated for mandel-tar and mandeld-tar are so different?  Which section of the code do you think is causing the serialization of all tasks in the graphical version?  How will you protect this section of code in the parallel OpenMP code in the next sections?
 
@@ -146,6 +131,8 @@ As we can see in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} the
 
 \section{Parallelization Strategies}%
 \label{sec:Parallelization Strategies}
+
+
 
 %aqui explicas las strategias del 4.2, 4.3 y 4.4
 
