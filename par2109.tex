@@ -97,6 +97,9 @@ We analyzed the potential parallelism for two possible task granularities that c
 \end{enumerate}
 % ... here
 
+\section{Task decomposition analysis with \emph{tareador}}%
+\label{sec:tareador}
+
 We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing purposes and to check for the numerical validity of the output (non-graphical version).} and \texttt{mandeld-tar}\footnote{\texttt{mandeld}: generates a binary that visualizes the Mandelbrot set (graphical version).}, programs with the different granularities using the \texttt{./run-tareador.sh} script and we obtained the following results.
 
 \begin{figure}[H]
@@ -124,7 +127,7 @@ We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} th
 \includegraphics[height=8cm]{plots/dependency_graph_mandeld_point.png}
 \hspace{5em}
 \includegraphics[height=8cm]{plots/dependency_graph_mandeld_row.pdf}
-\caption{Task dependence graph of \texttt{mandeld-tar.c} with point and row decompositions.}
+\caption{Task dependence graph of \texttt{mandeld-tar.c} with point and row decomposition.}
 \label{graph:mandeld_point_and_row}
 \end{figure}
 
@@ -292,7 +295,7 @@ We used \texttt{\#pragma omp parallel for collapse(2)} to collapse the two level
 
 In figures~\ref{fig:ssa_v1} and \ref{fig:ssa_v2} we can see that there is a little improvement
 from version 1 to version 2, probably due to the reduced overhead of having the same thread create all the
-tasks. But the slope of the speedup behaves simliarly and is quite flat from 5 threads onwards.
+tasks. But the slope of the speedup behaves similarly and is quite flat from 5 threads on-wards.
 
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
@@ -371,15 +374,19 @@ see in figure~\ref{fig:ssa_v7}. However the row decomposition offers the best re
     \centering
     \includegraphics[width=0.35\linewidth]{plots/v11-crop.pdf}
     \caption{Strong scalability analysis \\ (for schedule(dyanmic, 25))}
-    \label{fig:ssa_v7} 
+    \label{fig:ssa_v11} 
 \end{figure}
+
+In figure~\ref{fig:ssa_v11} we show the strong scalability analysis of the \texttt{for}-based decomposition
+with dynamic scheduling and a chunk size of 25. This approach gives even better results that the row based
+decomposition. In section~\ref{ssec:for} we discuss how we settled on these parameters.
 
 \pagebreak
 \subsection{Taskloop grainsize analysis}
 
 We tried different grainsize value for the taskloop decomposition. To obtain the results we ran
 10 repetitions of \texttt{./mandel-omp -i 10000} for each grainsize value. The mean results of
-exection times are shown in table~\ref{tab:grainsize}.
+execution times are shown in table~\ref{tab:grainsize}.
 
 \begin{table}[H]
     \caption{Execution times with different grainsizes}%
@@ -394,7 +401,10 @@ scale respectively. We can see that the best results are obtained with grainsize
 with a grainsize of 200, although the difference between the execution times with other grainsize above 100 is not
 significant.
 
-This results show that a small granularity dos not offer much benefits in our case. Given that a grainsize of 800
+This results show that a small granularity affects negatively the execution time, this
+is probably due to the load imbalance we saw when analyzing the program with
+tareador. This load imbalance is evened out between the tasks when we have bigger granularity.
+Given that a grainsize of 800
 seems to give similar execution times than the best cases, it is worth considering \emph{row} based task decomposition
 instead of \emph{point} based (since 1 row = 800).
 
@@ -413,7 +423,8 @@ instead of \emph{point} based (since 1 row = 800).
 \end{figure}
 
 \pagebreak
-\subsection{for scheduling analysis}
+\subsection{for scheduling analysis}%
+\label{ssec:for}
 
 We ran the for task decomposition of the program with different scheduling schemes and chunk-sizes. The
 results obtained can be seen in table~\ref{tab:for}.
@@ -448,12 +459,15 @@ a chunk size of 800, although similar execution times are obtained with static 1
 \end{figure}
 
 The fact that static scheduling has much longer execution times for certain-chunk sizes is due to the load imbalance
-we discussed in the introduction. One thing to notice is that the computation of a point takes longer in the \emph{edges}
+we mentioned in the \emph{tareador} analysis (section \ref{sec:tareador}) and in the previous section when
+discusing the taskloop gransize.
+One thing to notice is that the computation of a point takes longer in the \emph{edges}
 of the set, therefore, if we use a static scheduling and the chunk size makes it so that the one thread gets assigned
 a lot of \emph{edge} points, the execution time will be affected as it happened with our chunk size of 100. 
 
 In our case we used always the same image of the set (shown in figure~\ref{fig:set}), but given that the program can be
-used to compute other sections of the set the best option is dynamic scheduling with small chunks.
+used to compute other sections of the set the best option is dynamic scheduling with small chunks, but not too small
+as to minimize the load imbalance of the tasks.
 
 \begin{figure}[H]
     \centering
@@ -464,6 +478,20 @@ used to compute other sections of the set the best option is dynamic scheduling 
 
 \section{Conclusions}%
 \label{sec:Conclusions}
+
+As we have seen, the Mandelbrot computation is embarrassingly parallel since every point can be computed indepently
+from the others. However, there is a load imbalance in the tasks due to the nature of the computation which makes
+higher granularity approaches unpractical.
+
+Although we can achieve pretty good speedup values with a taskloop with granularity 1 and nogroup, the row
+decomposition approach gives better results. The best results we obtained were using \texttt{for}-based decomposition
+with dynamic scheduling and a chunk-size of 25. This chunk size is the one that gave the best results in our
+experiments, but it may no be ideal for other regions of the image, we think however that this size minimizes
+the load inbalance of the tasks in most cases.
+
+% NO se k estoy metiendo pero parece k hayamos hecho cosas como minimo. lol
+
+
 
 % TODO: I aqui pues relleno bonito del final
 
