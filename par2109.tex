@@ -108,6 +108,8 @@ We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing 
 \label{graph:mandel_row}
 \end{figure}
 
+% Which are the two most important common characteristics of the task graphs generated for the two task granularities (Point and Row) for the non-graphical version of mandel-tar?  Why the task graphs generated for mandel-tar and mandeld-tar are so different?  Which section of the code do you think is causing the serialization of all tasks in the graphical version?  How will you protect this section of code in the parallel OpenMP code in the next sections?
+
 As we expected the point decomposition has a much more big granularity than the row one. But we obtained that the two decompositions generate similar task graphs for each executable.
 
 We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} that with the \texttt{mandel} executable all tasks can parallelize at the same level. But in figure~\ref{graph:mandeld_point_and_row} we see that with the \texttt{mandeld} executable we obtain a serialization of all tasks.
@@ -121,24 +123,22 @@ We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} th
 \label{graph:mandeld_point_and_row}
 \end{figure}
 
-This serialization in the graphical version is caused in the lines XXX of the code due to a data race problem that implies full dependence between all tasks. This section could be protected with the \texttt{#pragma omp critical} clause as shown in the figure~\ref{listing:mandel-omp-critical}.
+This serialization in the graphical version is caused in the lines 120-130 of the code due to a data race problem that implies full dependence between all tasks. This section can be protected with the \texttt{\#pragma omp critical} clause as shown in the listing~\ref{listing:mandel-omp-critical}. % is this ok?
 
-\begin{listing}
-\inputminted[firstline=8,lastline=8]{c}{sources}
-\caption{Problematic section in the \texttt{mandel-tar.c} protected with \texttt{#pragma omp critical}.}
+\begin{listing}[H]
+\inputminted[firstline=120,lastline=130]{c}{sources/mandel-omp-v1.c}
+\caption{Problematic section in \texttt{mandel-tar.c} protected with \texttt{\#pragma omp critical}.}
 \label{listing:mandel-omp-critical}
 \end{listing}
 
-% Which are the two most important common characteristics of the task graphs generated for the two task granularities (Point and Row) for the non-graphical version of mandel-tar?  Why the task graphs generated for mandel-tar and mandeld-tar are so different?  Which section of the code do you think is causing the serialization of all tasks in the graphical version?  How will you protect this section of code in the parallel OpenMP code in the next sections?
-
-% Reason which one of the two task granularities would be more appropriate to apply to implement a parallel version of the Mandelbrot code.
+% TODO: Reason which one of the two task granularities would be more appropriate to apply to implement a parallel version of the Mandelbrot code.
+\textbf{ATENCION FALTA HACER!}
+Esto ni idea... yo diria que el POINT seria lo mejor pero no hay infinitos threads por lo tanto teniendo los threads que tenemos quizas es mejor ROW no?
 
 \section{Parallelization Strategies}%
 \label{sec:Parallelization Strategies}
 
-
-
-%aqui explicas las strategias del 4.2, 4.3 y 4.4
+%TODO: aqui explicas las strategias del 4.2, 4.3 y 4.4
 
 %$ OMP_NUM_THREADS=1 ./mandeld-omp -i 10000
 %Total execution time: 3.228077s
@@ -150,7 +150,7 @@ This serialization in the graphical version is caused in the lines XXX of the co
 \section{Performance evaluation}%
 \label{sec:Performance evaluation}
 
-%Aqui comparas
+%TODO: Aqui comparas
 
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
@@ -163,6 +163,21 @@ This serialization in the graphical version is caused in the lines XXX of the co
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v2-crop.pdf}
         \caption{Strong scalability analysis v2}
+        \label{fig:ssa_v2} 
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{captures/v1-profile.png}
+        \caption{Paraver \texttt{tasks\_profile} v1}
+        \label{fig:ssa_v1} 
+    \end{minipage}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{captures/v1-plot.png}
+        \caption{Paraver tasks v1}
         \label{fig:ssa_v2} 
     \end{minipage}
 \end{figure}
@@ -248,7 +263,7 @@ This serialization in the graphical version is caused in the lines XXX of the co
 \section{Conclusions}%
 \label{sec:Conclusions}
 
-%I aqui pues relleno bonito del final
+% TODO: I aqui pues relleno bonito del final
 
 
 \end{document}
