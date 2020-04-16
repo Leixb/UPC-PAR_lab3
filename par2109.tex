@@ -1,7 +1,7 @@
 % vim: spell spelllang=en:
 \input{preamble}
 
-\usepackage{caption}
+\usepackage[justification=centering]{caption}
 \usepackage{subcaption}
 \usepackage{graphicx}
 \usepackage{enumitem}
@@ -71,7 +71,7 @@ linenos
         Alex Herrero\\
         {\bfseries\ttfamily par2109}\\
         \vspace{4em}
-        2020-04-16
+        2020-04-17
         \par}
 }
 \end{titlepage}
@@ -279,16 +279,20 @@ We used \texttt{\#pragma omp parallel for collapse(2)} to collapse the two level
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v1-crop.pdf}
-        \caption{Strong scalability analysis v1}
+        \caption{Strong scalability analysis v1 \\ (parallel inside for)}
         \label{fig:ssa_v1} 
     \end{minipage}
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v2-crop.pdf}
-        \caption{Strong scalability analysis v2}
+        \caption{Strong scalability analysis v2 \\ (taskwait)}
         \label{fig:ssa_v2} 
     \end{minipage}
 \end{figure}
+
+In figures~\ref{fig:ssa_v1} and \ref{fig:ssa_v2} we can see that there is a little improvement
+from version 1 to version 2, probably due to the reduced overhead of having the same thread create all the
+tasks. But the slope of the speedup behaves simliarly and is quite flat from 5 threads onwards.
 
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
@@ -305,53 +309,70 @@ We used \texttt{\#pragma omp parallel for collapse(2)} to collapse the two level
     \end{minipage}
 \end{figure}
 
+
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v3-crop.pdf}
-        \caption{Strong scalability analysis v3}
+        \caption{Strong scalability analysis v3 \\ (taskgroup)}
         \label{fig:ssa_v3} 
     \end{minipage}
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v4-crop.pdf}
-        \caption{Strong scalability analysis v4}
+        \caption{Strong scalability analysis v4 \\ (no taskwait)}
         \label{fig:ssa_v4} 
     \end{minipage}
 \end{figure}
 
+We can see that there is no difference in the plots between v2~(figure \ref{fig:ssa_v2}) and v3~(figure \ref{fig:ssa_v3}), just as we
+expected given that there are no nested tasks created and therefore \texttt{taskwait} and \texttt{taskgroup} should
+behave the same. we can see that removing \texttt{taskwait} (v4 in figure~\ref{fig:ssa_v4}) offers a slight increase in performance more noticeably in from 8 threads on-wards.
 
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v5-crop.pdf}
-        \caption{Strong scalability analysis v5}
+        \caption{Strong scalability analysis v5 \\ (taskloop)}
         \label{fig:ssa_v5} 
     \end{minipage}
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v6-crop.pdf}
-        \caption{Strong scalability analysis v6}
+        \caption{Strong scalability analysis v6 \\ (taskloop grainsize(1))}
         \label{fig:ssa_v6} 
     \end{minipage}
 \end{figure}
+
+Figure~\ref{fig:ssa_v5} shows that the usage of \texttt{taskloop} improves the performance significantly giving a
+speed up much closer to the ideal when compared to the previous versions. Using a grainsize of 1 be obtain even
+better results as shown in figure~\ref{fig:ssa_v6}.
+
 
 \begin{figure}[H]
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v7-crop.pdf}
-        \caption{Strong scalability analysis v7}
+        \caption{Strong scalability analysis v7 \\ (taskloop grainsize(1) nogroup)}
         \label{fig:ssa_v7} 
     \end{minipage}
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=0.7\linewidth]{plots/v8-crop.pdf}
-        \caption{Strong scalability analysis v8}
+        \caption{Strong scalability analysis v8 \\ (row decomposition)}
         \label{fig:ssa_v8} 
     \end{minipage}
 \end{figure}
 
+The addition of \texttt{nogroup} doesn't seem to have much effect on the execution time of the program as we can
+see in figure~\ref{fig:ssa_v7}. However the row decomposition offers the best results as seen in figure~\ref{fig:ssa_v8}.
+
+\pagebreak
 \subsection{Taskloop grainsize analysis}
+
+We tried different grainsize value for the taskloop decomposition. To obtain the results we ran
+10 repetitions of \texttt{./mandel-omp -i 10000} for each grainsize value. The mean results of
+exection times are shown in table~\ref{tab:grainsize}.
 
 \begin{table}[H]
     \caption{Execution times with different grainsizes}%
@@ -360,6 +381,15 @@ We used \texttt{\#pragma omp parallel for collapse(2)} to collapse the two level
     \input{tables/grainsizes}
     \end{center}
 \end{table}
+
+Figures~\ref{fig:grain} and \ref{fig:grain_log} show the data of table~\ref{tab:grainsize} on a linear scale and logarithmic
+scale respectively. We can see that the best results are obtained with grainsizes above 100. The best result was
+with a grainsize of 200, although the difference between the execution times with other grainsize above 100 is not
+significant.
+
+This results show that a small granularity dos not offer much benefits in our case. Given that a grainsize of 800
+seems to give similar execution times than the best cases, it is worth considering \emph{row} based task decomposition
+instead of \emph{point} based (since 1 row = 800).
 
 \begin{figure}[H]
     \centering
@@ -375,6 +405,7 @@ We used \texttt{\#pragma omp parallel for collapse(2)} to collapse the two level
     \label{fig:grain_log} 
 \end{figure}
 
+\pagebreak
 \subsection{for scheduling analysis}
 
 We ran the for task decomposition of the program with different scheduling schemes and chunk-sizes. The
@@ -411,11 +442,15 @@ a chunk size of 800, although similar execution times are obtained with static 1
 
 The fact that static scheduling has much longer execution times for certain-chunk sizes is due to the load imbalance
 we discussed in the introduction. One thing to notice is that the computation of a point takes longer in the \emph{edges}
-of the set
+of the set, therefore, if we use a static scheduling and the chunk size makes it so that the one thread gets assigned
+a lot of \emph{edge} points, the execution time will be affected as it happened with our chunk size of 100. 
+
+In our case we used always the same image of the set (shown in figure~\ref{fig:set}), but given that the program can be
+used to compute other sections of the set the best option is dynamic scheduling with small chunks.
 
 \begin{figure}[H]
     \centering
-    \includegraphics{images/set.png}
+    \includegraphics[width=0.7\textwidth]{images/set.png}
     \caption{Mandelbrot set with 10000 maxiter}
     \label{fig:set} 
 \end{figure}
