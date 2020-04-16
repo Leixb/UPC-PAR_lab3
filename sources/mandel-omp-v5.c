@@ -92,7 +92,7 @@ void mandelbrot(int height,
     #pragma omp parallel
     #pragma omp single
     for (int row = 0; row < height; ++row) {
-        #pragma omp taskloop firstprivate(row) // num_tasks(64) // grain_size(width/64)
+        #pragma omp taskloop firstprivate(row)
         for (int col = 0; col < width; ++col) {
             {
             complex z, c;
