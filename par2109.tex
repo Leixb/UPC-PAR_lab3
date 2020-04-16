@@ -31,7 +31,7 @@ linenos
 
 \title{
     PAR Laboratory Assignment\\
-    Lab 3: Embarrassingly parallelism with OpenMP: Mandelbrot set
+    Lab 3: Embarrassingly parallelism with OpenMP:\\ Mandelbrot set
 }
 
 \author{
@@ -57,7 +57,7 @@ linenos
     \vfill
     {\Huge \bfseries PAR Laboratory Assignment\par}
     \vspace{3em}
-    {\Large {\scshape Lab 3:} Embarrassingly parallelism with OpenMP: Mandelbrot set \par}
+    {\Large {\scshape Lab 3:} Embarrassingly parallelism with OpenMP: \\ Mandelbrot set \par}
     \vfill
 \begin{center}
 \end{center}
@@ -92,7 +92,7 @@ We analyzed the potential parallelism for two possible task granularities that c
 \end{enumerate}
 % ... here
 
-We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing purposes and to check for the numerical validity of the output.} and \texttt{mandeld-tar}\footnote{\texttt{mandeld}: generates a binary that visualizes the Mandelbrot set.}, programs with the different granularities using the \texttt{./run-tareador.sh} script and we obtained the following results.
+We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing purposes and to check for the numerical validity of the output (non-graphical version).} and \texttt{mandeld-tar}\footnote{\texttt{mandeld}: generates a binary that visualizes the Mandelbrot set (graphical version).}, programs with the different granularities using the \texttt{./run-tareador.sh} script and we obtained the following results.
 
 \begin{figure}[H]
 \centering
@@ -110,10 +110,7 @@ We executed both, \texttt{mandel-tar}\footnote{\texttt{mandel}: used for timing 
 
 As we expected the point decomposition has a much more big granularity than the row one. But we obtained that the two decompositions generate similar task graphs for each executable.
 
-We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} that with the \texttt{mandel} executable all tasks can parallelize at the same level.
-
-%in the \texttt{mandel} version.
-
+We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} that with the \texttt{mandel} executable all tasks can parallelize at the same level. But in figure~\ref{graph:mandeld_point_and_row} we see that with the \texttt{mandeld} executable we obtain a serialization of all tasks.
 
 \begin{figure}[H]
 \centering
@@ -124,6 +121,13 @@ We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} th
 \label{graph:mandeld_point_and_row}
 \end{figure}
 
+This serialization in the graphical version is caused in the lines XXX of the code due to a data race problem that implies full dependence between all tasks. This section could be protected with the \texttt{#pragma omp critical} clause as shown in the figure~\ref{listing:mandel-omp-critical}.
+
+\begin{listing}
+\inputminted[firstline=8,lastline=8]{c}{sources}
+\caption{Problematic section in the \texttt{mandel-tar.c} protected with \texttt{#pragma omp critical}.}
+\label{listing:mandel-omp-critical}
+\end{listing}
 
 % Which are the two most important common characteristics of the task graphs generated for the two task granularities (Point and Row) for the non-graphical version of mandel-tar?  Why the task graphs generated for mandel-tar and mandeld-tar are so different?  Which section of the code do you think is causing the serialization of all tasks in the graphical version?  How will you protect this section of code in the parallel OpenMP code in the next sections?
 
@@ -147,6 +151,68 @@ We can observe in figures~\ref{graph:mandel_point} and~\ref{graph:mandel_row} th
 \label{sec:Performance evaluation}
 
 %Aqui comparas
+
+\begin{figure}[H]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v1-crop.pdf}
+        \caption{Strong scalability analysis v1}
+        \label{fig:ssa_v1} 
+    \end{minipage}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v2-crop.pdf}
+        \caption{Strong scalability analysis v2}
+        \label{fig:ssa_v2} 
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v3-crop.pdf}
+        \caption{Strong scalability analysis v3}
+        \label{fig:ssa_v3} 
+    \end{minipage}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v4-crop.pdf}
+        \caption{Strong scalability analysis v4}
+        \label{fig:ssa_v4} 
+    \end{minipage}
+\end{figure}
+
+
+\begin{figure}[H]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v5-crop.pdf}
+        \caption{Strong scalability analysis v5}
+        \label{fig:ssa_v5} 
+    \end{minipage}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v6-crop.pdf}
+        \caption{Strong scalability analysis v6}
+        \label{fig:ssa_v6} 
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v7-crop.pdf}
+        \caption{Strong scalability analysis v7}
+        \label{fig:ssa_v7} 
+    \end{minipage}
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.7\linewidth]{plots/v8-crop.pdf}
+        \caption{Strong scalability analysis v8}
+        \label{fig:ssa_v8} 
+    \end{minipage}
+\end{figure}
+
 
 \begin{table}[H]
     \caption{Execution times with different grainsizes}%
