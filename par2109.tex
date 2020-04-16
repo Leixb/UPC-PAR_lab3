@@ -15,7 +15,9 @@
 \definecolor{LightGray}{rgb}{0.83, 0.83, 0.83}
 \definecolor{bg}{HTML}{282828}
 
-\usepackage{minted}
+\usepackage[newfloat]{minted}
+\captionsetup[listing]{position=top}
+
 \setminted{
 style=monokai,
 %frame=lines,
@@ -139,6 +141,101 @@ The program is embarrassingly parallelizable so to implement a parallel version 
 
 %TODO: aqui explicas las strategias del 4.2, 4.3 y 4.4
 
+\subsection{\emph{Point} startegy using \emph{OpenMP} \texttt{task}}%
+
+There are multiple ways to create a task for the computation of each point in the Mandelbrot set. We tried
+several options and analyzed the performance of each one.
+
+The first version is shown in listing~\ref{lst:v1}. We create a task for each iteration of the \texttt{col} for. The
+pool of threads is initialized at every row.
+
+\begin{listing}[H]
+    \caption{v1 of point task decomposition}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v1.c}
+    \label{lst:v1} 
+\end{listing}
+
+In the second version we mode the parallel and single pragmas outside of the \texttt{row} loop. Therefore, there
+is only one parallel region in the program. Since we also add a taskwait, the program should behave the same as with
+version 1. 
+
+\begin{listing}[H]
+    \centering
+    \caption{v2: point task decomposition with taskwait}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v2.c}
+    \vspace{-2em}
+    \inputminted[firstline=132,lastline=134]{c}{sources/mandel-omp-v2.c}
+    \label{lst:v2} 
+\end{listing}
+
+In v3 we use \texttt{taskgroup} instead of \texttt{taskwait}. The main diference between \texttt{taskgroup}
+and \texttt{taskwait} is that the former waits for all tasks inside the group, including children tasks.
+\texttt{taskwait} only waits for the tasks generated on the same level, and not the children of those tasks.
+In our particular case, since there are no nested tasks generated, there should be no noticeable 
+difference between v2 and v3.
+
+\begin{listing}[H]
+    \centering
+    \caption{v3: point task decomposition with taskgroup}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v3.c}
+    \vspace{-2em}
+    \inputminted[firstline=133,lastline=135]{c}{sources/mandel-omp-v3.c}
+    \label{lst:v3} 
+\end{listing}
+
+v4 removes the \texttt{taskwait} directive, since there is no need to wait for the previous row tasks
+to finish before generating the new ones.
+
+\begin{listing}[H]
+    \centering
+    \caption{v4: point task decomposition task without taskwait}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v4.c}
+    \vspace{-2em}
+    \inputminted[firstline=131,lastline=133]{c}{sources/mandel-omp-v4.c}
+    \label{lst:v4} 
+\end{listing}
+
+v5 uses \texttt{taskloop} to explicitly generate the tasks. Since there is no granularity, OpenMP
+decides a value for it depending of the number of threads in the region.
+
+\begin{listing}[H]
+    \centering
+    \caption{v5: point task decomposition with taskloop}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v5.c}
+    \label{lst:v5} 
+\end{listing}
+
+In v6 we specify a granularity of 1, meaning that every iteration loop is assigned to a single task
+
+\begin{listing}[H]
+    \centering
+    \caption{v6: point task decomposition with taskloop grainsize(1)}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v6.c}
+    \label{lst:v6} 
+\end{listing}
+
+In v7 we specify a granularity of 1 and \texttt{nogroup} that eliminates the implicit \texttt{taskwait}
+of the loop (meaning that they don't wait for the other tasks to finish before creating the next set).
+
+\begin{listing}[H]
+    \centering
+    \caption{v7: point task decomposition with taskloop grainsize(1) nogroup}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v7.c}
+    \label{lst:v7} 
+\end{listing}
+
+\subsection{\emph{Row} startegy using \emph{OpenMP} \texttt{task}}%
+
+To implement the \emph{row} parallelization strategy we defined a task for each iteration of
+the \texttt{row} loop as shown in listing~\ref{lst:v8}.
+
+\begin{listing}[H]
+    \centering
+    \caption{v8: row task decomposition}
+    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v8.c}
+    \label{lst:v8} 
+\end{listing}
+
 %$ OMP_NUM_THREADS=1 ./mandeld-omp -i 10000
 %Total execution time: 3.228077s
 %$ ./mandeld -i 10000
@@ -151,77 +248,6 @@ The program is embarrassingly parallelizable so to implement a parallel version 
 
 %TODO: Aqui comparas
 
-
-
-\subsection{\emph{Point} startegy using \emph{OpenMP} \texttt{task}}%
-
-There are multiple ways to create a task for the computation of each point in the Mandelbrot set. We tried
-several options and analyzed the performance of each one.
-
-The first version is shown in listing~\ref{lst:v1}. We create a task for each iteration of the \texttt{col} for. The
-pool of threads is initialized at every row.
-
-\begin{figure}[H]
-    \centering
-    \caption{v1 of point task decomposition}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v1.c}
-    \label{lst:v1} 
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{v2: point task decomposition with taskwait}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v2.c}
-    \vspace{-2em}
-    \inputminted[firstline=132,lastline=134]{c}{sources/mandel-omp-v2.c}
-    \label{lst:v2} 
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{v3: point task decomposition with taskgroup}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v3.c}
-    \vspace{-2em}
-    \inputminted[firstline=133,lastline=135]{c}{sources/mandel-omp-v3.c}
-    \label{lst:v3} 
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{v4: point task decomposition task without wait}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v4.c}
-    \vspace{-2em}
-    \inputminted[firstline=131,lastline=133]{c}{sources/mandel-omp-v4.c}
-    \label{lst:v4} 
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{v5: point task decomposition with taskloop}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v5.c}
-    \label{lst:v5} 
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{v6: point task decomposition with taskloop grainsize(1)}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v6.c}
-    \label{lst:v6} 
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{v7: point task decomposition with taskloop grainsize(1) nogroup}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v7.c}
-    \label{lst:v7} 
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{v8: row task decomposition}
-    \inputminted[firstline=91,lastline=98]{c}{sources/mandel-omp-v8.c}
-    \label{lst:v7} 
-\end{figure}
 
 %
 %lo estoy metiendo aqui de momento.
